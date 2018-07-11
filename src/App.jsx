@@ -9,22 +9,11 @@ class App extends Component {
       currentUser: { name: "Bob" }, // optional. if currentUser is not defined, it means the user is Anonymous
       messages: []
     };
-    this.newMessageHandler = this.newMessageHandler.bind(this);
   }
 
   componentDidMount() {
-    console.log("componentDidMount <App />");
-    // setTimeout(() => {
-    //   console.log("Simulating incoming message");
-    //   // Add a new message to the list of messages in the data store
-    //   const newMessage = { id: 3, username: "Michelle", content: "Hello there!" };
-    //   const messages = this.state.messages.concat(newMessage)
-    //   // Update the state of the app component.
-    //   // Calling setState will trigger a call to render() in App and all child components.
-    //   this.setState({ messages: messages })
-    // }, 3000);
     this.chitchatWebSocket = new WebSocket("ws://localhost:3001/");
-    
+
     // Interprets incoming messages from websocket server
     this.chitchatWebSocket.onmessage = e => {
       const msgObj = JSON.parse(e.data);
@@ -38,19 +27,18 @@ class App extends Component {
     this.setState({ messages: newMessages });
   };
 
-  newMessageHandler(e) {
-    if (e.key == "Enter") {
-      const newMessageObj = {
-        username: this.state.currentUser.name,
-        content: e.target.value
-      };
+  sendMessage = newMessage => {
+    const newMessageObj = {
+      username: this.state.currentUser.name,
+      content: newMessage
+    };
+    // Send the msg object as a JSON-formatted string
+    this.chitchatWebSocket.send(JSON.stringify(newMessageObj));
+  };
 
-      // Send the msg object as a JSON-formatted string
-      this.chitchatWebSocket.send(JSON.stringify(newMessageObj));
-
-      e.target.value = "";
-    }
-  }
+  sendUsername = newUsername => {
+    this.setState({ currentUser: { name: newUsername } });
+  };
 
   render() {
     return (
@@ -62,8 +50,9 @@ class App extends Component {
         </nav>
         <MessageList messages={this.state.messages} />
         <ChatBar
-          newMessageHandler={this.newMessageHandler}
+          sendMessage={this.sendMessage}
           currentUser={this.state.currentUser}
+          sendUsername={this.sendUsername}
         />
       </div>
     );

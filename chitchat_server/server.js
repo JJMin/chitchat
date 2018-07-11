@@ -18,9 +18,9 @@ const wss = new SocketServer({ server });
 
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
-    if (client.readyState === SocketServer.OPEN) {
+    // if (client.readyState === SocketServer.OPEN) {
       client.send(JSON.stringify(data));
-    }
+    // }
   });
 };
 

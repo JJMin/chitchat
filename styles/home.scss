@@ -43,7 +43,8 @@ body {
   flex: 2;
 }
 
-.message {
+.message,
+.notification {
   display: flex;
   padding: 5px;
 }
@@ -54,7 +55,8 @@ body {
 }
 
 .message-content,
-.message-username {
+.message-username,
+.notification-content {
   overflow: hidden;
   margin: 5px;
   padding: 0 10px;

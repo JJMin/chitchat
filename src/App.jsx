@@ -6,7 +6,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: { name: "Bob" }, // optional. if currentUser is not defined, it means the user is Anonymous
+      currentUser: { name: "Anonymous" }, // optional. if currentUser is not defined, it means the user is Anonymous
       messages: []
     };
   }
@@ -17,9 +17,27 @@ class App extends Component {
     // Interprets incoming messages from websocket server
     this.chitchatWebSocket.onmessage = e => {
       const msgObj = JSON.parse(e.data);
-      this.updateMessages(msgObj);
+      switch(msgObj.type) {
+        case "incomingMessage":
+          // handle incoming message
+          this.updateMessages(msgObj);
+          break;
+        case "incomingNotification":
+          // handle incoming notification
+          this.updateNotifications(msgObj);
+          break;
+        default:
+          // show an error in the console if the message type is unknown
+          throw new Error("Unknown event type " + msgObj.type);
+      }
     };
   }
+
+  updateNotifications = notificationObj => {
+    const oldMessages = this.state.messages;
+    const newMessages = [...oldMessages, notificationObj];
+    this.setState({ messages: newMessages });
+  };
 
   updateMessages = msgObj => {
     const oldMessages = this.state.messages;
@@ -29,6 +47,7 @@ class App extends Component {
 
   sendMessage = newMessage => {
     const newMessageObj = {
+      type: "postMessage",
       username: this.state.currentUser.name,
       content: newMessage
     };
@@ -37,6 +56,12 @@ class App extends Component {
   };
 
   sendUsername = newUsername => {
+    const notificationObj = {
+      type: "postNotification",
+      content: `${this.state.currentUser.name} has changed their name to ${newUsername}`
+    };
+    // Send the notification object as a JSON-formatted string
+    this.chitchatWebSocket.send(JSON.stringify(notificationObj));
     this.setState({ currentUser: { name: newUsername } });
   };
 

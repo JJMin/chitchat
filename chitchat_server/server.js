@@ -32,7 +32,20 @@ wss.on('connection', (ws) => {
   
   ws.on('message', function incoming(data) {
     const parsedData = JSON.parse(data);
-    parsedData.id = uuidv1();
+    switch (parsedData.type) {
+      case "postMessage":
+        // handle post message
+        parsedData.type = "incomingMessage";
+        parsedData.id = uuidv1();
+        break;
+      case "postNotification":
+        // handle post notification
+        parsedData.type = "incomingNotification";
+        break;
+      default:
+        // show an error in the console if the message type is unknown
+        throw new Error("Unknown event type " + parsedData.type);
+    };
     wss.broadcast(parsedData);
   });
 

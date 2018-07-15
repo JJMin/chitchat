@@ -7,7 +7,8 @@ class App extends Component {
     super(props);
     this.state = {
       currentUser: { name: "Anonymous" }, // optional. if currentUser is not defined, it means the user is Anonymous
-      messages: []
+      messages: [],
+      activeUsers: 0
     };
   }
 
@@ -17,7 +18,7 @@ class App extends Component {
     // Interprets incoming messages from websocket server
     this.chitchatWebSocket.onmessage = e => {
       const msgObj = JSON.parse(e.data);
-      switch(msgObj.type) {
+      switch (msgObj.type) {
         case "incomingMessage":
           // handle incoming message
           this.updateMessages(msgObj);
@@ -25,6 +26,10 @@ class App extends Component {
         case "incomingNotification":
           // handle incoming notification
           this.updateNotifications(msgObj);
+          break;
+        case "activeUsers":
+          // handle active user count
+          this.setState({ activeUsers: msgObj.count });
           break;
         default:
           // show an error in the console if the message type is unknown
@@ -58,7 +63,9 @@ class App extends Component {
   sendUsername = newUsername => {
     const notificationObj = {
       type: "postNotification",
-      content: `${this.state.currentUser.name} has changed their name to ${newUsername}`
+      content: `${
+        this.state.currentUser.name
+      } has changed their name to ${newUsername}`
     };
     // Send the notification object as a JSON-formatted string
     this.chitchatWebSocket.send(JSON.stringify(notificationObj));
@@ -71,6 +78,16 @@ class App extends Component {
         <nav className="navbar">
           <a href="/" className="navbar-brand">
             ChitChat
+          </a>
+          <a className="active-users">
+            {this.state.activeUsers ? (
+              <a className="navbar-brand active-users">
+                {" "}
+                {this.state.activeUsers} users online
+              </a>
+            ) : (
+              <a className="navbar-brand active-users"> 0 users online</a>
+            )}
           </a>
         </nav>
         <MessageList messages={this.state.messages} />
